@@ -44,14 +44,24 @@ In order to achieve that level of customized, beautiful design, Flutter is archi
 TL;DR
 https://flutter.io/docs/resources/faq#why-did-flutter-choose-to-use-dart
 
-### hot reload is useful
+### Hot reload is useful
 Hot reload means the app state is retained after a reload.
 
 ### Can I access platform services and APIs like sensors and local storage?
 Yes. Flutter encourage develpers to use Flutter's asynchronous message passing system to create your own integration with playtform and third-party APIs.
 
 ### [What programming paradigm does Flutter’s framework use?](https://flutter.io/docs/resources/faq#what-programming-paradigm-does-flutters-framework-use)
-TL:DR
+- Composition: using small objects with narrow scopes of behavior, composed together to obtain more complicated effects.
+- Functional programming: For example, the Icon widget is essentially a function that maps its arguments (color, icon, size) into layout primitives. Additionally, heavy use is made of immutable data structures, including the entire Widget class hierarchy as well as numerous supporting classes such as Rect and TextStyle. On a smaller scale, Dart’s Iterable API, which makes heavy use of the functional style (map, reduce, where, etc), is frequently used to process lists of values in the framework
+- Event-driven programming: User interactions are represented by event objects that are dispatched to callbacks registered with event handlers.The Listenable class, which is used as the basis of the animation system, formalizes a subscription model for events with multiple listeners
+- Class-based object-oriented programming
+- Prototype-based object-oriented programming:
+- Imperative programming:
+- Reactive programming:
+- Declarative programming: The build methods of widgets are often a single expression with multiple levels of nested constructors, written using a strictly declarative subset of Dart.
+- Generic programming: Types can be used to help developers catch programming errors early.
+- Concurrent programming: Flutter makes heavy use of Futures and other asynchronous APIs.
+- Constraint programming: The layout system in Flutter uses a weak form of constraint programming to determine the geometry of a scene.
 
 
 ## [Flutter Technical overview](https://flutter.io/docs/resources/technical-overview)
@@ -60,17 +70,18 @@ TL:DR
 - create beautiful, highly-customized user experiences.
 
 ### Core principles
-### Everything is a Widget
+
+#### Everything is a Widget
 Composition > inheritance
 Container, a commonly-used widget, is made up of several widgets responsible for layout, painting, positioning, and sizing
 https://flutter.io/docs/resources/technical-overview#composition--inheritance
 
-### Building widgets
+#### Building widgets
 You define the unique characteristics of a widget by implementing a build function that returns a tree (or hierarchy) of widgets.
 A widget’s build function should be free of side effects.
 
 
-### Handling user interaction
+#### Handling user interaction
 
 
 # [Get Started](https://flutter.io/docs/get-started/)
@@ -80,10 +91,91 @@ This section would guide you to
 - Run app on both iOS and Android simulator & devices
 Before all, get to know Dart please.
 
+A widget’s main job is to provide a build() method that describes how to display the widget in terms of other, lower level widgets.
+
+Stateless widgets are immutable, meaning that their properties can’t change—all values are final.
+
+Stateful widgets maintain state that might change during the lifetime of the widget. Implementing a stateful widget requires at least two classes:
+- a StatefulWidget class that creates an instance of
+- a State class.
+
+## [Flutter for Android devs](https://flutter.io/docs/get-started/flutter-for/android-devs)
+
+### animation
+https://flutter.io/docs/development/ui/animations/tutorial
+https://flutter.io/docs/development/ui/animations
+
+### Navigator and Route
+A Route is an abstraction for a “screen” or “page” of an app, and a Navigator is a widget that manages routes.
+
+Flutter use Navigator and Route to navigate between screens.
+
+### Handle incoming intents from external apps
+1. we first handle the shared text data on the Android native side (in our Activity
+2. then wait until Flutter requests for the data to provide it using a MethodChannel
+
+
+### runOnUiThread?
+Dart has a single-threaded execution model, with support for Isolates (a way to run Dart code on another thread), an event loop, and asynchronous programming.
+For Flutter, you could just use async/await to perform asynchronous work.
+
+### background thread?
+Since Flutter is single threaded and runs an event loop (like Node.js), you don’t have to worry about thread management or spawning background threads.
+If you’re doing I/O-bound work, such as disk access or a network call, then you can safely use async/await and you’re all set.
+If, on the other hand, you need to do computationally intensive work that keeps the CPU busy, you want to move it to an Isolate to avoid blocking the event loop.
+
+Just use async/await or Isolate.
+
+### show progress for a long-running task
+use a ProgressIndicator widget
+
+### the place you store image files
+Assets are located in any arbitrary folder—Flutter has no predefined folder structure. You declare the assets (with location) in the pubspec.yaml file, and Flutter picks them up
+
+### localization
+https://pub.dartlang.org/packages/intl
+
+### [lifecycle](https://flutter.io/docs/get-started/flutter-for/android-devs#how-do-i-listen-to-android-activity-lifecycle-events)
+https://docs.flutter.io/flutter/dart-ui/AppLifecycleState-class.html
+- inactive
+- paused
+- resumed
+- suspending
+
+### Gesture detection and touch event Handling
+If the Widget doesn’t support event detection, wrap the widget in a GestureDetector and pass a function to the onTap parameter.
+- onTapDown
+- onTap
+- ...
+- onDoubleTap
+- onLongPress
+- onVerticalDragStart
+- ...
+- onHorizontalDragStart
+- ...
+
+### ListViews & Adapters
+The recommended, efficient, and effective way to build a list uses a ListView.Builder.
+This method is great when you have a dynamic List or a List with very large amounts of data.
+This is essentially the equivalent of RecyclerView on Android, which automatically recycles list elements for you:
+
+### Flutter plugins
+- [geolocator](https://pub.dartlang.org/packages/geolocator) for access the GPS sensor
+- [image_picker](https://pub.dartlang.org/packages/image_picker) for accessing camera
+
 ## [Flutter for iOS devs](https://flutter.io/docs/get-started/flutter-for/ios-devs)
 TL;DR
-## [Flutter for Android devs](https://flutter.io/docs/get-started/flutter-for/android-devs)
-TL;DR
+
+### [Declarative UI](https://flutter.io/docs/get-started/flutter-for/declarative)
+- Imperative Style used by many other UI frameworks:
+you manually construct a full-functioned UI entity, such as a UIView or equivalent, and later mutate it using methods and setters when the UI changes
+
+- Declarative Style used by Flutter:
+In order to lighten the burden on developers from having to program how to transition between various UI states, Flutter, by contrast, lets the developer describe the current UI state and leaves the transitioning to the framework
+
+
+
+
 
 # [Development](https://flutter.io/docs/development)
 

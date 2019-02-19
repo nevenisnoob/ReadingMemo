@@ -1,4 +1,4 @@
-                                           # Overview
+# Overview
 try Dart here:
 https://dartpad.dartlang.org/
 
@@ -188,6 +188,7 @@ $variableName or ${expression}
 - Dart supports top-level functions (such as main()), as well as functions tied to a class or object (static and instance methods, respectively)
   * Comparing with java, you have to define a function in a class.
 - Unlike Java, Dart doesn’t have the keywords public, protected, and private. If an identifier starts with an underscore ( _ ), it’s private to its library.
+
 ## Keywords
 cheat sheet is here:
 https://www.dartlang.org/guides/language/language-tour#keywords
@@ -436,6 +437,13 @@ All functions return a value. if no return value is specified, the statement `re
 
 ## [Operators](https://www.dartlang.org/guides/language/language-tour#operators)
 if null: ??
+
+If the boolean expression tests for null, consider using ??.
+```
+String playerName(String name) => name ?? 'Guest';
+// if name is null, return 'Guest', otherwise return name.
+```
+
 type test: as, is, is!
 
 ### Arithmetic operators
@@ -561,7 +569,8 @@ var p2 = new Point.fromJson({'x': 1, 'y': 2});
 ```
 The new keyword became optional in Dart 2.
 
-constant constructors: To create a compile-time constant using a constant constructor, put the const keyword before the constructor name:
+[constant constructors](https://www.dartlang.org/guides/language/language-tour#constant-constructors):
+To create a compile-time constant using a constant constructor, put the const keyword before the constructor name:
 ```
 var p = const ImmutablePoint(2, 2);
 
@@ -572,14 +581,28 @@ const pointAndLine = const {
 };
 
 // Only one const, which establishes the constant context.
+// The const keyword became optional within a constant context in Dart 2.
 const pointAndLine = {
   'point': [ImmutablePoint(0, 0)],
   'line': [ImmutablePoint(1, 10), ImmutablePoint(-2, 11)],
 };
 ```
 
+If a constant constructor is outside of a constant context and is invoked without const, it creates a non-constant object:
+```
+var a = const ImmutablePoint(1, 1); // Creates a constant
+var b = ImmutablePoint(1, 1); // Does NOT create a constant
+
+assert(!identical(a, b)); // NOT the same instance!
+```
+
+
+
 ### Getting an object’s type
 you can use Object’s runtimeType property
+```
+print('The type of a is ${a.runtimeType}');
+```
 
 ### Instance variables
 All uninitialized instance variables have the value null.
@@ -591,38 +614,56 @@ If you initialize an instance variable where it is declared (instead of in a con
 ### [Constructors](https://www.dartlang.org/guides/language/language-tour#constructors)
 Use `this` only when there is a name conflict
 
-Subclasses don’t inherit constructors from their superclass
-
-Remember that constructors are not inherited, which means that a superclass’s named constructor is not inherited by a subclass. If you want a subclass to be created with a named constructor defined in the superclass, you must implement that constructor in the subclass.
-
-By default, a constructor in a subclass calls the superclass’s unnamed, no-argument constructor.
-In summary, the order of execution is as follows:
-- initializer list
-- superclass’s no-arg constructor
-- main class’s no-arg constructor
-
-If the superclass doesn’t have an unnamed, no-argument constructor, then you must manually call one of the constructors in the superclass.Specify the superclass constructor after a colon (:), just before the constructor body (if any)
-
-Initializer list
-Besides invoking a superclass constructor, you can also initialize instance variables before the constructor body runs. Separate initializers with commas.
-
-- Default constructor
-  * The default constructor has no arguments and invokes the no-argument constructor in the superclass.
-- Named constructor
-- Initializer list
-- Redirecting constructors
-- Constant constructors
-  * If your class produces objects that never change, you can make these objects compile-time constants.
-  * To do this, define a const constructor and make sure that all instance variables are final.
-- Factory constructors
-
-
+Syntactic sugar:
 ```
 class Point {
   num x, y;
 
   // Syntactic sugar for setting x and y
   // before the constructor body runs.
+  Point(this.x, this.y);
+}
+```
+
+You can't create two or more constructors with same names but different arguments.
+
+Dart takes these same name constructors as one default constructor.
+```
+class Person {
+  String name;
+  bool male;
+  Person.make(String name) {
+    this.name = name;
+    this.male = true;
+  }
+
+  //Error here because 'The constructor with name make is already defined.'
+  Person.make(String name, bool male) {
+    this.name = name;
+    this.male = male;
+  }
+
+  Person(String name, bool male) {
+    this.name = name;
+    this.male = male;
+  }
+
+  // Error here because the default constructor is already defined.
+  Person():name = "Default", male = true {}
+}
+```
+
+#### Constructors aren't inherited
+Subclasses don’t inherit constructors from their superclass.
+
+A subclass that declares no constructors has only the default (no argument, no name) constructor.
+If you declare any constructor, then the default constructor won't be generated.
+
+#### Named constructors
+```
+class Point {
+  num x, y;
+
   Point(this.x, this.y);
 
   // Named constructor
@@ -631,34 +672,18 @@ class Point {
     y = 0;
   }
 }
+```
+Remember that constructors are not inherited, which means that a superclass’s named constructor is not inherited by a subclass. If you want a subclass to be created with a named constructor defined in the superclass, you must implement that constructor in the subclass.
 
-// Initializer list sets instance variables before
-// the constructor body runs.
-Point.fromJson(Map<String, num> json)
-    : x = json['x'],
-      y = json['y'] {
-  print('In Point.fromJson(): ($x, $y)');
-}
+#### Invoking a non-default superclass constructor
+By default, a constructor in a subclass calls the superclass’s unnamed, no-argument constructor.
+In summary, the order of execution is as follows:
+- initializer list
+- superclass’s no-arg constructor
+- main class’s no-arg constructor
 
-class Point {
-  num x, y;
-
-  // The main constructor for this class.
-  Point(this.x, this.y);
-
-  //Redirecting constructors, body is empty
-  // Delegates to the main constructor.
-  Point.alongXAxis(num x) : this(x, 0);
-}
-
-class Person {
-  String firstName;
-
-  Person.fromJson(Map data) {
-    print('in Person');
-  }
-}
-
+If the superclass doesn’t have an unnamed, no-argument constructor, then you must manually call one of the constructors in the superclass.Specify the superclass constructor after a colon (:), just before the constructor body (if any)
+```
 class Employee extends Person {
   // Person does not have a default constructor;
   // you must call super.fromJson(data).
@@ -667,6 +692,42 @@ class Employee extends Person {
   }
 }
 
+class Employee extends Person {
+  Employee() : super.fromJson(getDefaultData());
+  // ···
+}
+```
+
+#### Initializer list
+Besides invoking a superclass constructor, you can also initialize instance variables before the constructor body runs. Separate initializers with commas.
+```
+class Student extends Person {
+  int age;
+  // use Initializer list to init instance variables, and call super method.
+  Student(String name, bool male, int age): age = age, super(name, male){
+  }
+}
+```
+
+#### Redirecting constructors
+```
+class Point {
+  num x, y;
+
+  // The main constructor for this class.
+  Point(this.x, this.y);
+
+  // Delegates to the main constructor.
+  Point.alongXAxis(num x) : this(x, 0);
+}
+```
+
+#### Constant constructors
+If your class produces objects that never change, you can make these objects compile-time constants.
+
+To do this, define a const constructor and make sure that all instance variables are final.
+
+```
 //Constant constructors
 class ImmutablePoint {
   static final ImmutablePoint origin =
@@ -678,52 +739,399 @@ class ImmutablePoint {
 }
 ```
 
+#### Factory constructors
+use the `factory` keyword  when implementing a constructor that doesn't always create a new instance of its class.
+
+For example, a factory constructor might return an instance from a cache, or it might return an instance of a subtype.
+```
+class Logger {
+  final String name;
+  bool mute = false;
+
+  // _cache is library-private, thanks to
+  // the _ in front of its name.
+  static final Map<String, Logger> _cache =
+      <String, Logger>{};
+
+  factory Logger(String name) {
+    if (_cache.containsKey(name)) {
+      return _cache[name];
+    } else {
+      final logger = Logger._internal(name);
+      _cache[name] = logger;
+      return logger;
+    }
+  }
+
+  Logger._internal(this.name);
+
+  void log(String msg) {
+    if (!mute) print(msg);
+  }
+}
+```
+with 'factory', your constructor could return values.
+
+for an easy understanding, you could take the factory constructor as an ordinary function witch returns the Class instance.
+```
+factory Logger(String name)
+//maybe equals to
+Logger getLogger(String name)
+```
+
 ### Methods
+Getters and setters: using the get and set keywords:
+```
+class Rectangle {
+  num left, top, width, height;
+
+  Rectangle(this.left, this.top, this.width, this.height);
+
+  // Define two calculated properties: right and bottom.
+  num get right => left + width;
+  set right(num value) => left = value - width;
+  num get bottom => top + height;
+  set bottom(num value) => top = value - height;
+}
+```
+
+Abstract methods can only exist in abstract classes.
+
 ### Abstract classes
+Abstract classes are useful for defining interfaces, often with some implementation.
+
+If you want your abstract class to appear to be instantiable, define a factory constructor.
+
 ### Implicit interfaces
+If you want to create a class A that supports class B’s API without inheriting B’s implementation, class A should implement the B interface
+```
+class Point implements Comparable, Location {...}
+```
+
+
 ### Extending a class
+```
+class SmartTelevision extends Television {
+  void turnOn() {
+    // use super to refer to the superclass
+    super.turnOn();
+    _bootNetworkInterface();
+    _initializeMemory();
+    _upgradeApps();
+  }
+
+  // use @override annotation to indicate that you are intentionally overriding a member.
+  @override
+  void turnOff() {...}
+  // ···
+}
+```
+
+To detect or react whenever code attempts to use a non-existent method or instance variable, you can override noSuchMethod():
+
+
 ### Enumerated types
+略
 ### Adding features to a class: mixins
+Mixins are a way of reusing a class’s code in multiple class hierarchies.
+
+To implement a mixin, create a class that extends Object and declares no constructors.
+
+Unless you want your mixin to be usable as a regular class, use the mixin keyword instead of class.
+
+More information here:https://github.com/dart-lang/language/blob/master/accepted/2.1/super-mixins/feature-specification.md#dart-2-mixin-declarations
+
+TL,DR;
+
 ### Class variables and methods
 
-## Generics
+Static variables aren’t initialized until they’re used.
+
+## [Generics](https://www.dartlang.org/guides/language/language-tour#generics)
+List<E>. The <…> notation marks List as a generic (or parameterized) type.
+
+Seems not too difficult to understand. We take a overview here.
+
+
 ### Why use generics?
+
+Generics are often required for type safety.
+
+Generic types can save you the trouble of creating all these interfaces. Instead, you can create a single interface that takes a type parameter:
+```
+abstract class Cache<T> {
+  T getByKey(String key);
+  void setByKey(String key, T value);
+}
+```
+
 ### Using collection literals
+List and map literals can be parameterized.
+```
+var names = <String>['Seth', 'Kathy', 'Lars'];
+var pages = <String, String>{
+  'index.html': 'Homepage',
+  'robots.txt': 'Hints for web robots',
+  'humans.txt': 'We are people, not machines'
+};
+```
 ### Using parameterized types with constructors
+```
+var views = Map<int, View>();
+
+var names = List<String>();
+names.addAll(['Seth', 'Kathy', 'Lars']);
+var nameSet = Set<String>.from(names);
+```
+
 ### Generic collections and the types they contain
+
 ### Restricting the parameterized type
+use extends
+```
+class Foo<T extends SomeBaseClass> {
+  // Implementation goes here...
+  String toString() => "Instance of 'Foo<$T>'";
+}
+
+class Extender extends SomeBaseClass {...}
+```
 ### Using generic methods
+```
+T first<T>(List<T> ts) {
+  // Do some initial work or error checking, then...
+  T tmp = ts[0];
+  // Do some additional checking or processing...
+  return tmp;
+}
+```
+you could use the type argument T in several places:
+- in the function's return type(T)
+- in the type of an argument(List<T>)
+- in the type of a local variable(T tmp)
 
 ## Libraries and visibility
-### Using libraries
-### Implementing libraries
+The `import` and `library` directives can help you create a modular and shareable code base.
 
-## Asynchrony support
+Libraries not only provide APIs, but are a unit of privacy: identifiers that start with an underscore ( _ ) are visible only inside the library.
+
+Every Dart app is a library, even if it doesn’t use a library directive.
+
+### Using libraries
+```
+import 'dart:html';
+import 'package:test/test.dart';
+```
+The only required argument to `import` is a URI specifying the library.
+- for built-in libraries, the URI has the special `dart:` scheme.
+- for other libraries, you can use a file system path or the `package:` scheme.
+
+> URI stands for uniform resource identifier. URLs (uniform resource locators) are a common kind of URI.
+
+#### Specifying a library prefix
+If you import two libraries that have conflicting identifiers, then you can specify a prefix for one or both libraries. For example, if library1 and library2 both have an Element class, then you might have code like this:
+```
+import 'package:lib1/lib1.dart';
+import 'package:lib2/lib2.dart' as lib2;
+
+// Uses Element from lib1.
+Element element1 = Element();
+
+// Uses Element from lib2.
+lib2.Element element2 = lib2.Element();
+```
+
+#### Importing only part of a library
+```
+// Import only foo.
+import 'package:lib1/lib1.dart' show foo;
+
+// Import all names EXCEPT foo.
+import 'package:lib2/lib2.dart' hide foo;
+```
+
+#### Lazily loading a library
+Deferred loading (also called lazy loading) allows an application to load a library on demand, if and when it’s needed. You may need deferred loading when:
+- to reduce an app's initial startup time
+- to perform A/B testing - trying out alternative implementations of an algorithm.
+- to load rarely used functionality, such as optional screens and dialogs.
+
+To lazily load a library, you must first import it using `deferred as`.
+```
+import 'package:greetings/hello.dart' deferred as hello;
+```
+
+When you need the library, invoke loadLibrary() using the library’s identifier.
+```
+Future greet() async {
+  await hello.loadLibrary();
+  hello.printGreeting();
+}
+```
+
+You can invoke loadLibrary() multiple times on a library without problems. The library is loaded only once.
+
+Keep in mind when you use deffered loading:
+- A deferred library’s constants aren’t constants in the importing file. Remember, these constants don’t exist until the deferred library is loaded.
+- You can’t use types from a deferred library in the importing file. Instead, consider moving interface types to a library imported by both the deferred library and the importing file.
+- Dart implicitly inserts loadLibrary() into the namespace that you define using deferred as namespace. The loadLibrary() function returns a Future.
+
+### [Implementing libraries](https://www.dartlang.org/guides/libraries/create-library-packages)
+Read this part carefully if you need to implement your own libraries.
+
+## [Asynchrony support](https://www.dartlang.org/guides/language/language-tour#asynchrony-support)
+Dart libraries are full of functions that return [Future](https://api.dartlang.org/stable/2.1.0/dart-async/Future-class.html) or [Stream](https://api.dartlang.org/stable/2.1.0/dart-async/Stream-class.html) objects.
+
+The `async` and `await` keywords support asynchronous programming.
+
 ### Handling Futures
+To use await, code must be in an async function:
+```
+Future checkVersion() async {
+  var version = await lookUpVersion();
+  // Do something with version
+}
+```
+
+You can use await multiple times in an async function. For example, the following code waits three times for the results of functions:
+```
+var entrypoint = await findEntrypoint();
+var exitCode = await runExecutable(entrypoint, args);
+await flushThenExit(exitCode);
+```
+
+In await expression, the value of expression is usually a Future;
+if it isn’t, then the value is automatically wrapped in a Future.
+This Future object indicates a promise to return an object.
+The value of await expression is that returned object.
+The await expression makes execution pause until that object is available.
+
+**If you get a compile-time error when using await, make sure await is in an async function**
+```
+Future main() async {
+  checkVersion();
+  print('In main: version is ${await lookUpVersion()}');
+}
+```
+
 ### Declaring async functions
-### Handling Streams
+An async function is a function whose body is marked with the async modifier.
+```
+String lookUpVersion() => '1.0.0';
+
+Future<String> lookUpVersion() async => '1.0.0';
+```
+
+If your function doesn’t return a useful value, make its return type Future<void>.
+
+
+### [Handling Streams](https://www.dartlang.org/guides/libraries/library-tour#stream)
+
+When you need to get values from a Stream, you have two options:
+- Use async and an asynchronous for loop (await for).
+- Use the Stream API, as described in the library tour.
+  * https://www.dartlang.org/guides/libraries/library-tour#stream
+
+**Before using await for, be sure that it makes the code clearer and that you really do want to wait for all of the stream’s results.
+For example, you usually should not use await for for UI event listeners, because UI frameworks send endless streams of events.**
+
+```
+await for (varOrType identifier in expression) {
+  // Executes each time the stream emits a value.
+}
+```
+The value of expression must have type Stream. Execution proceeds as follows:
+1. Wait until the stream emits a value.
+2. Execute the body of the for loop, with the variable set to that emitted value.
+3. Repeat 1 and 2 until the stream is closed.
+
+```
+Future main() async {
+  // ...
+  await for (var request in requestServer) {
+    handleRequest(request);
+  }
+  // ...
+}
+```
+**If you get a compile-time error when implementing an asynchronous for loop, make sure the await for is in an async function.**
 
 ## Generators
+When you need to lazily produce a sequence of values, consider using a generator function.
+- Synchronous generator: Returns an `Iterable` object.
+- Asynchronous generator: Returns a `Stream` object.
 
-## Callable classes
+To implement a synchronous generator function, mark the function body as sync*, and use yield statements to deliver values:
+```
+Iterable<int> naturalsTo(int n) sync* {
+  int k = 0;
+  while (k < n) yield k++;
+}
+```
 
-## Isolates
+To implement an asynchronous generator function, mark the function body as async*, and use yield statements to deliver values:
+```
+Stream<int> asynchronousNaturalsTo(int n) async* {
+  int k = 0;
+  while (k < n) yield k++;
+}
+```
 
-## Typedefs
+Actually it is difficult to understand this part, especially the sync*, async* and yield.
+take a look at the article below if having time: https://www.dartlang.org/articles/language/beyond-async
 
-## Metadata
+## [Callable classes](https://www.dartlang.org/guides/language/language-tour#callable-classes)
+you could treat class as a function, just by implement the call() method.
 
-## Comments
-### Single-line comments
-### Multi-line comments
-### Documentation comments
+## [Isolates](https://api.dartlang.org/stable/2.1.1/dart-isolate/dart-isolate-library.html)
+Instead of threads, all Dart code runs inside of isolates. Each isolate has its own memory heap, ensuring that no isolate’s state is accessible from any other isolate.
+
+## [Typedefs](https://www.dartlang.org/guides/language/language-tour#typedefs)
+This would be changed in the future, so skip it for now.
+
+## [Metadata](https://www.dartlang.org/guides/language/language-tour#metadata)
+Use metadata to give additional information about your code. A metadata annotation begins with the character `@`.
+
+Two annotations are available to all Dart code: @deprecated and @override.
+
+you can define your own metadata annotations.
+
+## [Comments](https://www.dartlang.org/guides/language/language-tour#comments)
+- Single-line comments
+```
+//
+```
+- Multi-line comments
+```
+/*
+ * This is a lot of work. Consider raising chickens.
+
+Llama larry = Llama();
+larry.feed();
+larry.exercise();
+larry.clean();
+ */
+```
+- Documentation comments
+Begin with `///` or `/**`
+```
+```
+
+here is the tips shows you how to structure your comments:
+https://www.dartlang.org/guides/language/effective-dart/documentation
 
 ## Summary
-
+TBA...
 
 # [Asynchronous Programming: Futures](https://www.dartlang.org/tutorials/language/futures)
 
 # [Asynchronous Programming: Streams](https://www.dartlang.org/tutorials/language/streams)
+
+# [Dart Language Asynchrony Support: Phase1](https://www.dartlang.org/articles/language/await-async)
+Async and await, two language features that support asynchronous programming,
+
+# [Dart Language Asynchrony Support: Phase2](https://www.dartlang.org/articles/language/beyond-async)
+Async*, sync*, yield, and yield*.
 
 # [Effective Dart](https://www.dartlang.org/guides/language/effective-dart)
 
