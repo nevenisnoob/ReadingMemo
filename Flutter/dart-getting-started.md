@@ -980,7 +980,9 @@ Keep in mind when you use deffered loading:
 Read this part carefully if you need to implement your own libraries.
 
 ## [Asynchrony support](https://www.dartlang.org/guides/language/language-tour#asynchrony-support)
-Dart libraries are full of functions that return [Future](https://api.dartlang.org/stable/2.1.0/dart-async/Future-class.html) or [Stream](https://api.dartlang.org/stable/2.1.0/dart-async/Stream-class.html) objects.
+Asynchronous programming often uses callback functions, but Dart provides alternatives:
+- [Future](https://api.dartlang.org/stable/2.1.0/dart-async/Future-class.html) objects
+- [Stream](https://api.dartlang.org/stable/2.1.0/dart-async/Stream-class.html) objects.
 
 The `async` and `await` keywords support asynchronous programming.
 
@@ -993,18 +995,21 @@ Future checkVersion() async {
 }
 ```
 
-You can use await multiple times in an async function. For example, the following code waits three times for the results of functions:
-```
-var entrypoint = await findEntrypoint();
-var exitCode = await runExecutable(entrypoint, args);
-await flushThenExit(exitCode);
-```
+You can use await multiple times in an async function.
 
 In await expression, the value of expression is usually a Future;
 if it isn’t, then the value is automatically wrapped in a Future.
 This Future object indicates a promise to return an object.
 The value of await expression is that returned object.
 The await expression makes execution pause until that object is available.
+
+```
+// findEntrypoint() returns a Future
+// await findEntrypoint() return the real object.
+var entrypoint = await findEntrypoint();
+var exitCode = await runExecutable(entrypoint, args);
+await flushThenExit(exitCode);
+```
 
 **If you get a compile-time error when using await, make sure await is in an async function**
 ```
@@ -1123,6 +1128,16 @@ https://www.dartlang.org/guides/language/effective-dart/documentation
 ## Summary
 TBA...
 
+# asynchronous programming
+## use then() for Future
+```
+HttpRequest.getString(url).then((String result) {
+  print(result);
+});
+```
+
+## use listen() for Stream
+
 # [Asynchronous Programming: Futures](https://www.dartlang.org/tutorials/language/futures)
 
 # [Asynchronous Programming: Streams](https://www.dartlang.org/tutorials/language/streams)
@@ -1132,6 +1147,63 @@ Async and await, two language features that support asynchronous programming,
 
 # [Dart Language Asynchrony Support: Phase2](https://www.dartlang.org/articles/language/beyond-async)
 Async*, sync*, yield, and yield*.
+
+use Generators to generate a Iterable object for sync, and generate a Stream object for async.
+## Synchronous generateors: sync*
+```
+Iterable naturalsTo(n) sync* {
+  int k = 0;
+  while (k < n) yield k++;
+}
+```
+when the function get called,
+- naturalsTo immediately returns an iterable, you could extract an iterator from the iterable.
+- The body of the function won’t start running until one calls moveNext on that iterator.
+- It will run until it hits the yield statement the first time. The yield statement contains an expression, which it evaluates.
+- Then, the function suspends, and moveNext returns true to its caller.
+- The function will resume execution the next time moveNext is called.
+- When the loop ends, the method implicitly executes a return, which causes it to terminate. At that point, moveNext returns false to its caller
+
+## Asynchronous generators: async*
+```
+Stream asynchronousNaturalsTo(n) async* {
+  int k = 0;
+  while (k < n) yield k++;
+}
+```
+- Invoking this function immediately returns a stream
+- Once you listen to the stream, execution of the body begins.
+- When the yield statement executes, it adds the result of evaluating its expression to the stream.
+- In any event, whatever function is listening on the stream will get called with each new value at some point.
+
+```
+Stream get naturals async* {
+  int k = 0; while (true) { yield await k++; }
+}
+
+await for (int i in naturals) { print(‘event loop $i’); }
+
+```
+
+## [Creating Streams in Dart](https://www.dartlang.org/articles/libraries/creating-streams)
+Three ways:
+- transforming existing streams
+- creating a stream from scratch by using an async* function
+- creating a stream by using a StreamController
+
+## [Stream API](https://api.dartlang.org/stable/2.2.0/dart-async/Stream-class.html)
+A Stream provides a way to receive a sequence of events.
+
+A stream will emit its event, which something similar to a Publisher;
+and you could listen on a stream to make it start generating events, and to set up listeners that receive the events.
+When you listen, you receive a StreamSubscription object.
+
+There are two kind of streams:
+- single-subscription steam: allow only a single listener during the whole lifetime of the stream.
+  * generally used for streaming chunks of larger contiguous data like file I/O
+- broadcast stream: A broadcast stream allows any number of listeners, and it fires its events when they are ready, whether there are listeners or not.
+  * Broadcast streams are used for independent events/observers
+
 
 # [Effective Dart](https://www.dartlang.org/guides/language/effective-dart)
 
