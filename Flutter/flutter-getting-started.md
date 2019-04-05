@@ -175,12 +175,27 @@ In order to lighten the burden on developers from having to program how to trans
 
 
 
-
-
 # [Development](https://flutter.io/docs/development)
 
-## User interfaces
-### Hello World
+Stateful Widget Lifecycle:
+```
+createState()
+mounted == true
+initState()
+didChangeDependencies()
+build()
+didUpdateWidget()
+setState()
+deactivate()
+dispose()
+mounted == false
+```
+
+API reference:https://docs.flutter.io/flutter/widgets/widgets-library.html
+
+## [User interfaces](https://flutter.io/docs/development/ui)
+### Introduction to widgets
+#### Hello World
 ```
 import 'package:flutter/material.dart';
 
@@ -198,27 +213,448 @@ void main() {
 runApp function taks a widget as argument.
 Here, the widget tree consists of two widgets, Center and Text.
 
-### Basic widgets
+#### Basic widgets
 - Text
 - Row, Column: let you create flexible layouts in both the horizontal (Row) and vertical (Column) directions
 - Stack: lets you stack widgets on top of each other in paint order
 - [Container](https://docs.flutter.io/flutter/widgets/Container-class.html): lets you create a rectangular visual element, A container can be decorated with a BoxDecoration
-### Using Material Components
+
+#### Using Material Components
 - [MaterialApp](https://docs.flutter.io/flutter/material/MaterialApp-class.html)
 
+#### Handling gestures
+```
+class MyButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        print('MyButton was tapped!');
+      },
+      child: Container(
+        height: 36.0,
+        padding: const EdgeInsets.all(8.0),
+        margin: const EdgeInsets.symmetric(horizontal: 8.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(5.0),
+          color: Colors.lightGreen[500],
+        ),
+        child: Center(
+          child: Text('Engage'),
+        ),
+      ),
+    );
+  }
+}
+```
+GestureDetector widget doesn't have a visual representation, but it could monitor all gestures which happened on its child.
 
-### Handling gestures
-### Changing widgets in response to input
-### Bringing it all together
-### Responding to widget lifecycle events
-### Keys
-### Global Keys
+more information here: https://flutter.io/docs/development/ui/advanced/gestures
+- [GestureDetector](https://docs.flutter.io/flutter/widgets/GestureDetector-class.html)
+- [AppBar](https://docs.flutter.io/flutter/material/AppBar-class.html)
+- [Container](https://docs.flutter.io/flutter/widgets/Container-class.html)
+  * tl;dr: Container tries, in order: to honor alignment, to size itself to the child, to honor the width, height, and constraints, to expand to fit the parent, to be as small as possible.
+- [Center](https://docs.flutter.io/flutter/widgets/Center-class.html)
+- [RaisedButton](https://docs.flutter.io/flutter/material/RaisedButton-class.html)
+
+
+#### Changing widgets in response to input
+you need a StatefulWidget and a State class.
+
+You might wonder why StatefulWidget and State are separate objects. In Flutter, these two types of objects have different life cycles. Widgets are temporary objects, used to construct a presentation of the application in its current state. State objects on the other hand are persistent between calls to build(), allowing them to remember information.
+
+Pay attention to build() method and setState() method in State class.
+- if setState is called, the State class would return the build method so that the display can reflect the updated values.
+- build() method in State class would be called every time setState is called.
+
+- [StatefulWidget](https://docs.flutter.io/flutter/widgets/StatefulWidget-class.html)
+- [State](https://docs.flutter.io/flutter/widgets/State-class.html)
+
+
+#### [Bringing it all together](https://flutter.io/docs/development/ui/widgets-intro#bringing-it-all-together)
+read this again!
+
+try to re-implement it by using StatefulWidget
+- [StatefulWidget](https://docs.flutter.io/flutter/widgets/StatefulWidget-class.html)
+  * For compositions that depend only on the configuration information in the object itself and the BuildContext in which the widget is inflated, consider using StatelessWidget.
+  * two types of StatefulWidget:
+    + allocates resources in State.initState() and disposes of them in State.dispose(). they are built once then never update.
+    + use State.setState() or depend on InheritedWidget. they would be rebuilt many times.
+
+- [StatelessWidget](https://docs.flutter.io/flutter/widgets/StatelessWidget-class.html)
+  * Stateless widget are useful when the part of the user interface you are describing does not depend on anything other than the configuration information in the object itself and the BuildContext in which the widget is inflated.
+
+
+#### Responding to widget lifecycle events
+- createState() is called
+- flutter inserts the new state object into the tree and calls initState()
+  * you could configure animations or subscribe platform services.
+- when a state object is no longer needed, flutter calls state object's dispose() method.
+  * you could do some cleanup work here.: cancel timers, unsubscribe platform services etc.
+
+#### Keys
+```
+class ShoppingList extends StatefulWidget {
+  ShoppingList({Key key, this.products}) : super(key: key);
+
+  final List<Product> products;
+
+  // The framework calls createState the first time a widget appears at a given
+  // location in the tree. If the parent rebuilds and uses the same type of
+  // widget (with the same key), the framework re-uses the State object
+  // instead of creating a new State object.
+
+  @override
+  _ShoppingListState createState() => _ShoppingListState();
+}
+```
+Keys are most useful in widgets that build many instances of the same type of widget.
+
+A key is an identifier for Widgets.
+
+#### Global Keys
+You can use global keys to uniquely identify child widgets.
+
+### Building layouts
+#### [Layout widgets](https://flutter.io/docs/development/ui/widgets/layout)
+- single-child layout widgets
+  * Container: https://flutter.io/docs/development/ui/layout#container
+  * Padding:
+  * Center
+  * Align
+  * ...
+- multi-child layout widgets
+  * Row
+  * Column
+  * Stack: https://flutter.io/docs/development/ui/layout#stack
+  * GridView: https://flutter.io/docs/development/ui/layout#gridview
+  * ListView: https://flutter.io/docs/development/ui/layout#listview
+
+
+aligning widgets by using Row/Column's MainAxisAlignment & CrossAxisAlignment
+- https://docs.flutter.io/flutter/rendering/MainAxisAlignment-class.html
+- https://docs.flutter.io/flutter/rendering/CrossAxisAlignment-class.html
+
+use Expanded to re-size the Widget.
+```
+Row(
+  crossAxisAlignment: CrossAxisAlignment.center,
+  children: [
+    Expanded(
+      child: Image.asset('images/pic1.jpg'),
+    ),
+    Expanded(
+      flex: 2,
+      child: Image.asset('images/pic2.jpg'),
+    ),
+    Expanded(
+      child: Image.asset('images/pic3.jpg'),
+    ),
+  ],
+);
+```
+
+use MainAxisSize.min to packing widgets.
+
+Learn the tutorial carefully! You'll know how flutter's layout mechanism works.
+https://flutter.io/docs/development/ui/layout/tutorial
+1. create the app base code
+2. diagram the layout
+3. implement the smallest widget
+4. then implement the outter/layout widget
+
+Expanded class: A widget that expands a child of a Row, Column, or Flex.
+If multiple children are expanded, the available space is divided among them according to the 'flex' factor.
+Using an Expanded widget makes a child of a Row, Column, or Flex expand to fill the available space in the main axis(horizontal for a row, vertical for a Column)
+
+Using an Flexible widget gives a child of a Row, Column, or Flex the flexibility to expand to fill the available space in the main axis.
+unlike Expanded, Flexible does not require the child to fill the available space.
+
+
+#### [Box constraints](https://flutter.io/docs/development/ui/layout/box-constraints)
+Generally, there are three kinds of render boxes
+- Those that try to be as big as possible. For example, the boxes used by Center, ListView, Container
+- Those that try to be the same size as their children. For example, the boxes used by Transform and Opacity.
+- Those that try to be a particular size. For example, the boxes used by Image and Text.
+
+### Adding interactivity
+A stateless widget never changes. Such as Icon, IconButton, and Text etc.
+
+A stateful widget is dynamic: for example, it can change its appearance in response to events triggered by user interactions or when it receives data. Such as Checkbox, Radio, Slider, InkWell, Form, and TextField, etc.
+
+Members or classes that start with an underscore ( _ ) are private.
+
+#### [Managing state](https://flutter.io/docs/development/ui/interactive#managing-state)
+There are three ways to managing the states:
+- the widget manage its own state
+  * If the state is aesthetic, for example an animation
+- the parent manages the widget's state
+  * If the state is user data, for example the checked or unchecked mode of a checkbox, or the position of a slider, managing state by parent.
+- a mix-and-match approach
+
+
+### [Assets and images](https://flutter.io/docs/development/ui/assets-and-images)
+Common types of assets include static data(json file), configuration files, icons, and images.
+
+you could specifying assets in your pubspec.yaml file
+```
+flutter:
+  assets:
+    - assets/my_icon.png
+    - assets/background.png
+
+```
+
+Loading assets by obtaining the AssetBundle for the current BuildContext using DefaultAssetBundle.
+
+Outside of a Widget context, or when a handle to an AssetBundle is not available, you can use rootBundle.
+
+
+### [Navigation & routing](https://flutter.io/docs/development/ui/navigation)
+In Flutter, screens and pages are called `routes`.
+A route equals:
+- for Android, route == activity
+- for iOS, route == ViewController
+
+A route is just a widget. Use Navigator to navigate to a new route.
+
+https://docs.flutter.io/flutter/widgets/Navigator-class.html
+
+
+#### [Navigate to a new screen and back](https://flutter.io/docs/cookbook/navigation/navigation-basics)
+1. Create two routes
+2. Navigate to the second route using Navigator.push()
+3. Return to the first route using Navigator.pop()
+```
+class FirstRoute extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('First Route'),
+      ),
+      body: Center(
+        child: RaisedButton(
+          child: Text('Open route'),
+          onPressed: () {
+            // Navigate to second route when tapped.
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => SecondRoute()),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+```
+- Navigator.push: https://docs.flutter.io/flutter/widgets/Navigator/push.html
+- MaterialPageRoute: https://docs.flutter.io/flutter/material/MaterialPageRoute-class.html
+  * A modal route that replaces the entire screen with a platform-adaptive transition
+
+#### [Send data to a new screen](https://flutter.io/docs/cookbook/navigation/passing-data)
+A Todo list sample, which meets the needs of news app.
+
+```
+ListView.builder(
+  itemCount: todos.length,
+  itemBuilder: (context, index) {
+    return ListTile(
+      title: Text(todos[index].title),
+      // When a user taps on the ListTile, navigate to the DetailScreen.
+      // Notice that we're not only creating a DetailScreen, we're
+      // also passing the current todo to it!
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetailScreen(todo: todos[index]),
+          ),
+        );
+      },
+    );
+  },
+);
+```
+
+#### [Return data from a screen](https://flutter.io/docs/cookbook/navigation/returning-data)
+Navigator.pop accepts an optional second argument called result. If we provide a result, it will be returned to the Future in our SelectionButton!
+
+```
+// A method that launches the SelectionScreen and awaits the result from
+// Navigator.pop!
+_navigateAndDisplaySelection(BuildContext context) async {
+  // Navigator.push returns a Future that will complete after we call
+  // Navigator.pop on the Selection Screen!
+  final result = await Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => SelectionScreen()),
+  );
+
+  // After the Selection Screen returns a result, hide any previous snackbars
+  // and show the new result!
+  Scaffold.of(context)
+    ..removeCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text("$result")));
+}
+
+//blablabla...
+RaisedButton(
+  onPressed: () {
+    // Our Nope button will return "Nope!" as the result
+    Navigator.pop(context, 'Nope!');
+  },
+  child: Text('Nope!'),
+);
+```
+Notice that we use the async/await to receive result.
+
+#### [Navigate with named routes](https://flutter.io/docs/cookbook/navigation/named-routes)
+```
+class FirstScreen extends StatelessWidget {...}
+
+class SecondScreen extends StatelessWidget {...}
+
+MaterialApp(
+  // Start the app with the "/" named route. In our case, the app will start
+  // on the FirstScreen Widget
+  initialRoute: '/',
+  routes: {
+    // When we navigate to the "/" route, build the FirstScreen Widget
+    '/': (context) => FirstScreen(),
+    // When we navigate to the "/second" route, build the SecondScreen Widget
+    '/second': (context) => SecondScreen(),
+  },
+);
+
+// Within the `FirstScreen` Widget
+onPressed: () {
+  // Navigate to the second screen using a named route
+  Navigator.pushNamed(context, '/second');
+}
+
+
+```
+- The initialRoute property defines which route our app should start with.
+- The routes property defines the available named routes and the Widgets that should be built when we navigate to those routes
+
+
+
+#### [Animating a widget across screens](https://flutter.io/docs/cookbook/navigation/hero-animations)
+Hero widget allows us to animate a widget from on screen to the next.
+https://docs.flutter.io/flutter/widgets/Hero-class.html
+
+1. create two screens showing the same image
+2. add a Hero widget to the first screen
+3. add a Hero widget to the second screen
+
+the Hero.tag must be same.
+```
+Hero(
+  tag: 'imageHero',
+  child: Image.network(
+    'https://picsum.photos/250?image=9',
+  ),
+);
+```
+That's it.
+
+### Animations
+```
+├── Animatable
+│   └── Tween
+├── Listenable
+│   └── Animation
+│       ├── AnimationController
+│       └── CurvedAnimation
+└── TickerProvider
+```
+
+Animationをさせたい場合、注意しなければならないのは
+- 最初のUIデザイン時点で、画面構成をちゃんと考えなければならない
+  * AppBar付きの画面は、Flutterが提供しているScaffold widgetを使うのはめっちゃ便利ですが、後からAnimationを追加することになると、描画領域の制限がかかられ、やりづらくなる
+- Animation付きのWidgetは、基本的に StatefulWidgetとして作成されます。
+  * Animationさせる際の、座標、幅などもStateですので
+  * この際のState管理は、親Widgetではなく、自分で管理することになる
+- 重要なクラス
+  * Animation
+  * AnimationController
+  * Tween
+  * TickerProvider
+- WidgetにAnimationをつける手順
+  * 画面のどのWidgetに、どんなAnimationをつけるのかを頭の中にイメージする
+  * そのようなAnimationさせるには、どうやって分解する？
+    + x軸、y軸、透明度、横幅、縦幅...
+  * AnimationControllerで、Animationの続く時間、Animation Stateを管理する
+    + 在AnimationController的Listener里调用setState来进行重绘
+  * 分解されたそれぞれのwidget propertyに、Animationを作り、AnimationControllerと関連をつける
+  * Tweenを使って、さらにAnimationを生成する
+  * AnimationControllerを使ってAnimationをさせる
+- その他
+  * GobalKeyを使って、別のWidgetからあるWidgetを呼び出せる
+
+AnimatedWidget/AnimatedBuilderを使えば、Animationの実装が楽になれる
+
+
+
+#### [Animation and motion widgets](https://flutter.dev/docs/development/ui/widgets/animation)
+
+#### [Study Resources]
+- https://blog.csdn.net/hekaiyou/article/details/72259392
+  * 一共七篇，由浅入深，值得一看。
+
+
+### Advanced UI
+#### pixel
+https://docs.flutter.io/flutter/dart-ui/Window/devicePixelRatio.html
+The Flutter framework operates in logical pixels.
+
+By definition, there are roughly 38 logical pixels per centimeter, or about 96 logical pixels per inch, of the physical display.
+
+#### Slivers
+
+#### Gestures
+
+### Widget catalog
 
 ## Data & backend
+### [State management](https://flutter.dev/docs/development/data-and-backend/state-mgmt/intro)
+
+Ephemeral state(UI State or local State):
+- current page in a PageView
+- current progress of a complex animation
+- current selected tab in a BottomNavigationBar
+
+for this kind of local state, there is no need to use state management techniques(ScopedModel, Redux, etc.)
+
+App State:
+- User preferences
+- Login info
+- Notifications in a social networking app
+- The shopping cart in an e-commerce app
+- Read/unread state of articles in a news app
+
+ScopedModel is the widget that provides an instance of Model to its descendants.
+
+
+
+### [Json and serialization](https://flutter.dev/docs/development/data-and-backend/json)
+In Flutter, encoding and serialization are the same thing—turning a data structure into a string. Decoding and deserialization are the opposite process—turning a string into a data structure.
+
 
 ## Accessibility & internationalization
 
 ## Platform integration
+
+関連情報
+- [Add flutter to existing apps](https://github.com/flutter/flutter/wiki/Add-Flutter-to-existing-apps)
+
+- Use MethodChannel for Flutter -> Native direction.
+- Use EventChannel for Native -> Flutter direction.
+  * [iOS Native主动和Flutter通信](https://juejin.im/post/5c133919e51d4524851c67e3)
+  * [google sample](https://github.com/flutter/flutter/tree/master/examples/platform_channel)
+
 
 ## Packages & plugins
 
@@ -233,6 +669,9 @@ demonstrate how to solve common problems while writing Flutter apps.
 ## [Flutter architecture: implement MVP pattern](https://medium.com/flutterpub/flutter-architecture-implement-a-mvp-pattern-8ab78b75f2d4)
 ## [Flutter architecture samples](https://github.com/brianegan/flutter_architecture_samples)
 ## [Discussion on Architecure patterns for flutter](https://www.reddit.com/r/FlutterDev/comments/7niro1/architecture_patterns_for_flutter/)
+## [Flutter + MVC at Last](https://medium.com/flutter-community/flutter-mvc-at-last-275a0dc1e730)
+## [Flutter redux app framework](https://github.com/alibaba/fish-redux)
+https://juejin.im/entry/5c7f6516518825408f707ae7
 
 # Testing & optimization
 ## [Debugging](https://flutter.io/docs/testing/debugging)
@@ -246,6 +685,29 @@ demonstrate how to solve common problems while writing Flutter apps.
 # Technical details
 ## [Inside Flutter](https://flutter.io/docs/resources/inside-flutter)
 ## [Why Flutter doesn't use OEM widgets](https://medium.com/flutter-io/why-flutter-doesnt-use-oem-widgets-94746e812510)
+## [Dart GC](https://juejin.im/post/5c7e0c255188250a432388d8)
+## [How Flutter use Widgets, Elements, and RenderObjects to create delicious eye-candy at 120fps](https://medium.com/flutter-community/the-layer-cake-widgets-elements-renderobjects-7644c3142401)
+- 中文翻译: https://www.jianshu.com/p/8e714a204898
+
+- Widget Tree
+- Element Tree
+- RenderObject Tree
+
+每一个Element中都有着相对应的Widget和RenderObject的引用.
+
+RenderObject中包含了所有用来渲染实例Widget的逻辑。它负责layout、painting和hit-testing。它的生成十分耗费性能，所以我们应该尽可能的缓存它
+
+Element是存在于可变Widget树和不可变RenderObject树之间的桥梁。Element擅长比较两个Object，在Flutter里面就是Widget和RenderObject。它的作用是配置好Widget在树中的位置，并且保持对于相对应的RenderObject和Widget的引用。
+
+当Widget树改变的时候，Flutter使用Element树来比较新的Widget树和原来的RenderObject树。如果某一个位置的Widget和RenderObject类型不一致，才需要重新创建RenderObject。如果其他位置的Widget和RenderObject类型一致，则只需要修改RenderObject的配置，不用进行耗费性能的RenderObject的实例化工作了。因为Widget是非常轻量级的，实例化耗费的性能很少，所以它是描述APP的状态（也就是configuration）的最好工具。
+
+因为Widget是不可变的，当某个Widget的配置改变的时候，整个Widget树都需要被重建。例如当我们改变一个Container的颜色为红色的时候，框架就会触发一个重建整个Widget树的动作。然后在Element的帮助下，Flutter比较新的Widget树中的第一个Widget类型和RenderObject树中第一个RenderObject的类型。接下来比较Widget树中第二个Widget和RenderObject树中第二个RenderObject的类型，以此类推，直到Widget树和RendObject树比较完成。
+
+Flutter遵循一个最基本的原则：判断新的Widget和老的Widget是否是同一个类型。
+如果不是同一个类型，那就把Widget、Element、RenderObject分别从它们的树（包括它们的子树）上移除，然后创建新的对象。
+如果是一个类型，那就仅仅修改RenderObject中的配置，然后继续向下遍历。
+这个过程是非常快的，因为Flutter非常擅长创建那些轻量级的Widgets。
+
 
 
 # Flutter Handbook
@@ -265,8 +727,33 @@ demonstrate how to solve common problems while writing Flutter apps.
 ## [Flutter codelabs](https://flutter.io/docs/codelabs)
 ## [Flutter samples on github](https://github.com/flutter/samples/blob/master/INDEX.md)
 
+# その他開発し始まる前に見といたほうが良さそうな情報
+- [Style guide for Flutter repo](https://github.com/flutter/flutter/wiki/Style-guide-for-Flutter-repo)
+
 
 # 個人感想
-## デメリット
 If mobile OS updates and introduces new widgets(UI widgets) and you are using flutter, you have to wait the Flutter team to support the new widgets.
 But if mobile OS updates and introduces new platform capabilities, you could use Flutter's interop and plugin system to access new mobile OS features and capabilities immediately.
+
+- When to use StatefulWidget or StatelessWidget?
+  * for StatefulWidget, it could generate data by itself?
+  * for StatelessWidget, data need to be passed to it？
+
+- Widget render tree???
+
+- when you see a widget tree, you should be able to draw the UI.
+  * https://flutter.io/docs/development/ui/layout#nesting-rows-and-columns
+    + for you to practice
+
+- How to manage state???
+  * https://flutter.io/docs/development/ui/interactive#managing-state
+
+- the difference of Expanded and Flexible
+  * https://stackoverflow.com/a/52904214/7701713
+
+- [Flutter Layout Cheat Sheet](https://medium.com/flutter-community/flutter-layout-cheat-sheet-5363348d037e)
+
+- [The Power of WebViews in Flutter](https://medium.com/flutter-io/the-power-of-webviews-in-flutter-a56234b57df2)
+
+- Figure out State's lifecycle is VERY important!!!!!!!!!!!!!!
+  * https://docs.flutter.io/flutter/widgets/State-class.html

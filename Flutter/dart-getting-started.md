@@ -1103,24 +1103,10 @@ you can define your own metadata annotations.
 
 ## [Comments](https://www.dartlang.org/guides/language/language-tour#comments)
 - Single-line comments
-```
-//
-```
 - Multi-line comments
-```
-/*
- * This is a lot of work. Consider raising chickens.
-
-Llama larry = Llama();
-larry.feed();
-larry.exercise();
-larry.clean();
- */
-```
-- Documentation comments
+- Documentation comments    
 Begin with `///` or `/**`
-```
-```
+
 
 here is the tips shows you how to structure your comments:
 https://www.dartlang.org/guides/language/effective-dart/documentation
